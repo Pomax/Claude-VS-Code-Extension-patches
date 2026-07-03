@@ -23,6 +23,8 @@ Tell your LLM to read through `patch-instructions.md` and do what it says.
 
 ### 2. Add in proper syntax highlighting for code blocks.
 
+Claude forms perfectly valid markdown, and the extension can't be fucking bothered to properly syntax highlight it even thought that's literally built into Monaco. Absolutely inexcusable.
+
 | before | after |
 |--|--|
 | <img width="705" height="398" alt="Image" src="https://github.com/user-attachments/assets/fcedce5e-12a9-4efc-accd-f64483a97184" /> |<img width="538" height="478" alt="Image" src="https://github.com/user-attachments/assets/ec079814-9161-4b00-81d0-b0a2974bfbea"> |
