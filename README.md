@@ -26,6 +26,9 @@ Tell your LLM to read through `patch-instructions.md` and do what it says.
 |--|--|
 | <img width="705" height="398" alt="Image" src="https://github.com/user-attachments/assets/fcedce5e-12a9-4efc-accd-f64483a97184" /> |<img width="538" height="478" alt="Image" src="https://github.com/user-attachments/assets/ec079814-9161-4b00-81d0-b0a2974bfbea"> |
 
+### 3. `/clear` preserves your prompt history.
+
+`/clear` should wipe the LLM slate clean, it should _not_ also magically wipe your prompt history. You should be able to have it fuck up, run `/clear`, and then hit "up" a few times to restart on your original prompt. The point of clearing is to clear the LLM, not to start a completely new context-free chat. There's already a fucking option for that, it's called "new chat".
 
 ## Can you add X?
 
