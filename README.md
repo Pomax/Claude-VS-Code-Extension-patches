@@ -18,7 +18,8 @@ Tell your LLM to read through `patch-instructions.md` and do what it says.
 
 | |
 | --- |
-| <img width="1057" height="403" alt="Image" src="https://github.com/user-attachments/assets/1be4a1e6-10e6-4931-a8f8-ead98c38f1e0" /> |
+| <img width="1264" height="493" alt="image" src="https://github.com/user-attachments/assets/3f84a97f-4ee6-4e8a-975b-d393d3ce3538" /> |
+
 
 ### 2. Add in proper syntax highlighting for code blocks.
 
