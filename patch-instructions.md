@@ -40,9 +40,7 @@ chat code blocks readable and syntax-highlighted, and strip the "working" status
 
 
 The end result: a static `working…` label (no spinner glyph, no typewriter effect), and code
-blocks that wrap, have a shaded background, and are syntax-highlighted. Plus: the up-arrow prompt
-history in the chat input survives `/clear` (and any other conversation reset) **and survives
-webview reloads / the panel being hidden** — it persists until you explicitly run `/clearprompts`.
+blocks that wrap, have a shaded background, and are syntax-highlighted. 
 
 ---
 

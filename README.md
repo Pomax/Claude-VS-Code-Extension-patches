@@ -1,26 +1,25 @@
 # What is this?
 
-Anthropic can't fucking bother to actually fix any VS Code extenion bugs people file. They'll let Claude close them "because they're stale" but they won't let it just fucking fix shit. They literally own Claude, they could fix all the issues in less than a day if they even remotely bothered, but no: fuck the user, why spend time on something that makes life better for them?
+Anthropic can't be bothered to actually fix any VS Code extension bugs that people file. They could just let Claude fix them, but instead they let Claude close bugs as stale so they don't have to pay any attention to their users. Who needs users? I guess the retort to that in this case is "who needs Anthropic? Extensions are just web apps, Claude can fix those just fine". So I told Claude to fix the things Anthropic can't be bothered to, and now there's this repo.
 
-So: fuck it, I made Claude fix the shit Anthropic can't be bothered to.
+## How to apply the fixes:
 
-## How to apply them:
+You probably want to turn off auto-update for the Claude extension, for two reasons:
 
-Step one: Anthropic's shit at fixing things, so turn off auto-update for the Claude extension. This isn't high frequency trading, there is zero reason for hourly or even minutely updates to an extension that does barely anything, and what it does, it does poorly.
+1. you'll need to reapply the fixes every time the extension updates, and
+2. it updates _a lot_ even though this is not high frequency trading, and there is literally no point in updating more than once a month unless there's a CVE. Which Anthropic won't even act on, so all you're getting are meaningless changes pushed what seems like every hour.
 
-Then: set Claude to "auto mode" and tell it to read through `patch-instructions.md` and do what it says.
+Then: set Claude to "auto mode" and tell it to read through `patch-instructions.md` and do what it says. The patch instructions are phrased in such as a way that Claude will ask you to confirm that it has permission to make changes, and you will have to reply with the literal string `yes`. All lower case, no quotes, no "yes please", no "go for it", if you do not answer with the exact string `yes` Claude will refuse to proceed.
 
-### How many tokens will that cost me?
-
-You don't care. If you did, you wouldn't be paying Anthropic to use Claude. You'd be using a service like DeepSeek, or running your own local LLM.
+**Note:** it's possible that Claude will still ask for permission to do some tasks. I have no idea why the CLI has "yolo" mode but the VS Code extension doesn't, but it doesn't, so there's at least one operation that it'll probably refuse to do, despite the fact that you already explicitly told it to do whatever it had to do. Isn't "AI" great?
 
 ## What got improved:
 
-### 1. I ripped out the stupid "whimsy terms while thinking" bullshit.
+### 1. I removed the "whimsy terms while thinking".
 
-- the word is "working". It's also the _only_ word.
-- there is no animated whimsy spinner.
-- there is no "cursor writing the text", just fucking show you're still working.
+- The word for what we're doing is "working", and so that's the only word it uses.
+- The animated spinner has been removed. No one needs that attention hog.
+- The text delay and animation's been removed too. Again, we're trying to get work done.
 
 | |
 | --- |
@@ -29,7 +28,7 @@ You don't care. If you did, you wouldn't be paying Anthropic to use Claude. You'
 
 ### 2. I added proper syntax highlighting for code blocks.
 
-Claude forms perfectly valid markdown, and the extension can't be fucking bothered to properly syntax highlight it even thought that's literally built into Monaco. Absolutely inexcusable.
+Claude forms perfectly valid markdown, and the extension authors couldn't be bothered to properly syntax highlight them, even thought that's literally built into Monaco. Absolutely inexcusable.
 
 | before | after |
 |--|--|
@@ -37,6 +36,12 @@ Claude forms perfectly valid markdown, and the extension can't be fucking bother
 
 ## Can you add X?
 
-You mean "can _I_ add X?"
+I think you mean "can **I** add X?". And absolutely, please do.
 
-If you're using these patches, you are using the Claude extension so you can use Claude: just file an issue detailing what you want to fix, and then ask Claude to do that work in the same way that the `patch-instructions.md` files already fixes a bunch of stuff. Then simply contribute that as a PR that fixes your issue. If Anthropic can't be bothered to fix stuff, at least we can bypass them and fix the shit they refuse to, _together_.
+If you're using these patches, you are using the Claude extension so you have Claude available: just file an issue detailing what you want to fix, and then ask Claude to do that work in the same way that the `patch-instructions.md` files already fixes a bunch of stuff, and ask it to update the instructions file to include your changes. Then simply contribute that as a PR that fixes your issue.
+
+If Anthropic can't be bothered to fix stuff, at least we can fix everything that's wrong ourselves, _together_.
+
+## Why do I need to let Claude do this?
+
+You don't. Go read the instructions and perform them yourself, then it'll cost you zero tokens. Or you can tell Claude to do it while you work on other things, because you shouldn't need to care about a tool running an update on itself.
