@@ -9,3 +9,6 @@ So: fuck it, I made Claude fix the shit Anthropic can't be bothered to.
 - rip out the stupid "whimsy terms while thinking" bullshit.
 - Add in proper syntax highlighting for code blocks.
 
+## Can you add X?
+
+No, but you can because you also have access to Claude. Tell it to apply these fixes, then tell it to also fix whatever _you_ need fixed in a way that it can file an issue and PR for that in this repo.
