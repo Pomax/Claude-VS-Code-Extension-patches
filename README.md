@@ -35,7 +35,7 @@ Claude forms perfectly valid markdown, and the extension can't be fucking bother
 
 ### 3. I fixed `/clear` so that it preserves your prompt history.
 
-`/clear` should wipe the LLM slate clean, it should _not_ also magically wipe your prompt history. You should be able to have it fuck up, run `/clear`, and then hit "up" a few times to restart on your original prompt. The point of clearing is to clear the LLM, not to start a completely new context-free chat. There's already a fucking option for that, it's called "new chat".
+`/clear` should wipe the LLM slate clean, it should _not_ also magically wipe your prompt history. You should be able to have it fuck up, run `/clear`, and then hit "up" a few times to restart on your original prompt. The point of clearing is to clear the LLM, and _**only**_ the LLM, not your user interface.
 
 If you want to clear your prompts, you can now issue `/clearprompts` as a separate command, which no sane person would ever want to use, but it's there because why not.
 
