@@ -37,6 +37,8 @@ Claude forms perfectly valid markdown, and the extension can't be fucking bother
 
 `/clear` should wipe the LLM slate clean, it should _not_ also magically wipe your prompt history. You should be able to have it fuck up, run `/clear`, and then hit "up" a few times to restart on your original prompt. The point of clearing is to clear the LLM, not to start a completely new context-free chat. There's already a fucking option for that, it's called "new chat".
 
+If you want to clear your prompts, you can now issue `/clearprompts` as a separate command, which no sane person would ever want to use, but it's there because why not.
+
 ## Can you add X?
 
 You mean "can _we_ add", because we all have access to Claude: file an issue detailing what you want to fix, and then Claude to do that work in the same way that the `patch-instructions.md` already fix a bunch of stuff (so: fix it and then update the instructions with the new fix). Then simply contribute that as a PR that fixes your issue. If Anthropic can't be bothered to fix stuff, at least we can bypass them and fix the shit they refuse to, _together_.
