@@ -26,11 +26,13 @@ chat code blocks readable and syntax-highlighted, and strip the "working" status
 | 5 | `index.js` | Remove the animated spinner **icon** from the status render | edit |
 | 6 | `index.js` | Disable the 120 ms spinner-frame **animation timer** | edit |
 | 7 | `index.js` | Remove the per-character **typewriter/scramble** reveal of the status word | edit |
-| 8 | `index.js` | `/clear` no longer wipes the **up-arrow prompt history**; prompts persist for the webview's lifetime | edit |
+| 8 | `index.js` | `/clear` no longer wipes the **up-arrow prompt history** (accumulates every prompt into a global) | edit |
+| 9 | `index.js` | Make that prompt history **persist across webview reload/disposal** via `localStorage`, and add a **`/clearprompts`** command to wipe it | **append (additive)** |
 
 The end result: a static `working…` label (no spinner glyph, no typewriter effect), and code
 blocks that wrap, have a shaded background, and are syntax-highlighted. Plus: the up-arrow prompt
-history in the chat input survives `/clear` (and any other conversation reset).
+history in the chat input survives `/clear` (and any other conversation reset) **and survives
+webview reloads / the panel being hidden** — it persists until you explicitly run `/clearprompts`.
 
 ---
 
@@ -278,8 +280,8 @@ grep -oE 'children:\[/\* LOCAL EDIT' "$JS"    # icon span removed
 
 **Goal:** pressing **↑** in the chat input cycles through your previously-typed prompts. That
 history is derived **live** from the current conversation's `messages` array, so `/clear` (which
-empties `messages`) also empties the history. Make the history **persist for the life of the
-webview** so old prompts stay reachable via ↑ even after `/clear`.
+empties `messages`) also empties the history. Accumulate every prompt into a global so old prompts
+stay reachable via ↑ even after `/clear`.
 
 **Root cause / mechanism (2.1.199):** the input-history hook (`CZe`, `{messages,currentInput,
 onInputChange,editableRef}`) computes its list via `useMemo(()=>_me(messages),[messages])`. Its
@@ -318,10 +320,9 @@ appending a `LOCAL EDIT` comment holding the original `_me`.
   all — no behavior change when you never `/clear`), then appends any older global-only prompts not
   already present. So current-conversation prompts stay newest-first at the front; preserved
   pre-clear prompts follow. Re-sending an old prompt after a clear does not create a duplicate.
-- **Scope = webview lifetime.** The store is `globalThis.__ccPromptHistoryAll`, an in-memory global.
-  It intentionally survives `/clear` but resets on a full webview reload / window reload — matching
-  "previous prompts *in a chat*." (To also survive reloads, back it with `localStorage`; not done
-  here — it would bleed history across unrelated panels/workspaces.)
+- **Scope.** The store is the global `globalThis.__ccPromptHistoryAll`. The append below backs that
+  global with `localStorage`, so the history persists across webview reload/disposal until
+  `/clearprompts` is issued; this edit only reads/writes the global and is unaware of that.
 - **Bounded:** capped at the most recent 2000 entries so a long-lived panel can't grow unbounded.
 
 **Verify:**
@@ -332,19 +333,76 @@ grep -c '__ccPromptHistoryAll' "$JS"   # expect 1
 Then reload the webview: type a few prompts, run `/clear`, and press **↑** in the input — your
 earlier prompts still cycle in.
 
+### Patch 9 — persist prompt history across reloads + `/clearprompts`  (append to `index.js`)
+
+**Goal:** make the prompt history **durably persistent** — surviving webview reload/disposal (panel
+hidden, "Reload Webviews", window reload), stay until the user explicitly runs **`/clearprompts`**.
+This patch is **fully additive and name-independent**: it appends one self-contained IIFE and
+modifies nothing above it. It does **not** depend on any minified names — it only relies on the
+stable global key `__ccPromptHistoryAll` that the `_me` edit reads and writes.
+
+**Mechanism:**
+1. **Persistence via accessor.** The IIFE redefines `globalThis.__ccPromptHistoryAll` as an
+   accessor property whose backing array is seeded from `localStorage` on load and re-saved on every
+   write. Since `_me` already does `var prev=g.__ccPromptHistoryAll||[]` (read) and
+   `g.__ccPromptHistoryAll=out` (write), those existing reads/writes now transparently hit
+   `localStorage` — **no change to `_me` is needed**. On webview reload the array is restored from
+   `localStorage`; the very next `_me` call (up-arrow triggers a live `_me(e)` because the
+   history hook memoizes it with `useCallback`, not `useMemo`) returns the restored list.
+2. **`/clearprompts`.** A **capture-phase** `keydown` listener on `document` fires before React and
+   before the slash-command menu. When **Enter** is pressed (no modifiers, not mid-IME-composition)
+   and the contenteditable input's trimmed text is exactly `/clearprompts` (case-insensitive), it
+   `stopImmediatePropagation`s the event (so the command is never submitted and never becomes a
+   message), wipes both the in-memory store and the `localStorage` key, and clears the input box.
+
+**Why capture phase / `stopImmediatePropagation`:** a native listener on `document` in the capture
+phase runs before any React handler (React attaches to a descendant root) and before the autocomplete
+popup, so `/clearprompts` is swallowed cleanly — no "unknown command" round-trip, and it isn't stored
+as a prompt. Everything is wrapped in `try/catch`, so a failure degrades to "no persistence / command
+does nothing", never a broken panel.
+
+**Locate the contenteditable host** (name-independent): the chat input is a contenteditable element.
+The listener walks up from `event.target` to the nearest element carrying a non-`false`
+`contenteditable` attribute — no minified names involved.
+
+**Change:** append the verbatim block in [Appendix D](#appendix-d--prompt-history-persistence--clearprompts-js)
+to the end of `index.js`. Then:
+```bash
+node --check "$JS" && echo OK
+grep -c 'END LOCAL EDIT promptpersist' "$JS"        # 2 (marker + revert-note mention)
+grep -c 'claude-code.promptHistoryAll.v1' "$JS"     # 1 (the localStorage key)
+```
+
+**Design notes:**
+- **Key & scope.** Stored under `localStorage["claude-code.promptHistoryAll.v1"]`. VS Code persists
+  webview `localStorage` across reloads, so this is the durable store. It is intentionally **not**
+  per-workspace — history is shared across Claude chat webviews on this machine. Bump the `.v1`
+  suffix if the shape ever changes.
+- **Race on first render.** If `_me` happened to run once before the accessor installed, the IIFE
+  folds that pre-existing in-memory array into the persisted store (newest-first, deduped) before
+  installing the accessor, so nothing is lost.
+- **Only `/clearprompts` clears it.** `/clear` leaves history intact, and so does a full reload. The
+  single documented way to wipe it is submitting `/clearprompts`.
+
+**Verify:** reload the webview, type a few prompts, then **"Developer: Reload Webviews"** — press
+**↑**: your prompts are still there. Then type `/clearprompts`, Enter — the box clears, nothing is
+submitted, and **↑** now shows only prompts typed since.
+
 ---
 
 ## 4. Final verification checklist
 
 ```bash
 node --check "$JS" && echo "JS OK"
-grep -c 'LOCAL EDIT' "$JS"     # every JS edit is documented (>= 5)
+grep -c 'LOCAL EDIT' "$JS"     # every JS edit is documented (>= 6)
 grep -c 'LOCAL EDIT' "$CSS"    # every CSS edit is documented (>= 3)
+grep -c 'claude-code.promptHistoryAll.v1' "$JS"   # 1 (the persistence key)
 ```
 Then in VS Code: **Command Palette → "Developer: Reload Webviews"** and confirm by eye:
 1. A code block wraps, has a shaded background, and is **syntax-highlighted** (light & dark).
 2. No ragged double-background inside code blocks.
 3. While Claude works: a **static** `working…` — no spinning glyph, no per-character typing.
+4. Type a couple prompts, Reload Webviews, press **↑** — prompts persist; `/clearprompts` wipes them.
 
 If any JS check fails at any point, **revert the last edit** (delete its `LOCAL EDIT` block and
 restore the `ORIGINAL:` text it contains) and re-derive the anchor. If the panel is broken and
@@ -442,6 +500,49 @@ fs.writeFileSync(file, s.replace(OLD, NEW));
 console.log("replaced");
 ```
 Then always: `node --check <file>`.
+
+## Appendix D — prompt-history persistence + `/clearprompts` (JS)
+
+Append to `index.js` verbatim. Fully additive and name-independent — it only touches the stable
+global key `__ccPromptHistoryAll` and standard DOM/localStorage APIs. Syntax-check the file in
+isolation first, then append: `node --check` after.
+
+```js
+
+;/* LOCAL EDIT (Claude Code, YYYY-MM-DD): persist up-arrow prompt history across webview reload/disposal + add /clearprompts. ADDITIVE ONLY - nothing above is modified. Backs globalThis.__ccPromptHistoryAll (populated by the _me patch) with localStorage so history is no longer tied to the webview being open; it persists until the user submits "/clearprompts". Revert: delete from this comment through the "END LOCAL EDIT promptpersist" marker at end of file. */
+(function(){try{
+var KEY="__ccPromptHistoryAll";
+var LS="claude-code.promptHistoryAll.v1";
+var g=(typeof globalThis!=="undefined"?globalThis:window);
+function load(){try{var raw=window.localStorage.getItem(LS);var a=raw?JSON.parse(raw):[];return Array.isArray(a)?a:[]}catch(e){return[]}}
+function save(a){try{window.localStorage.setItem(LS,JSON.stringify(a));}catch(e){}}
+var store=load();
+// If _me already ran before this accessor installed, fold its in-memory list in (newest-first, deduped).
+try{var pre=g[KEY];if(Array.isArray(pre)&&pre.length){var seen=Object.create(null),merged=[];for(var i=0;i<pre.length;i++){var x=pre[i];if(!seen[x]){seen[x]=1;merged.push(x)}}for(var j=0;j<store.length;j++){var y=store[j];if(!seen[y]){seen[y]=1;merged.push(y)}}store=merged;save(store);}}catch(e){}
+try{
+Object.defineProperty(g,KEY,{
+configurable:true,
+get:function(){return store;},
+set:function(v){store=Array.isArray(v)?v:[];save(store);}
+});
+}catch(e){/* if it can't be redefined, fall back to a plain persisted global */ g[KEY]=store;}
+function clearAll(){try{store=[];}catch(e){}try{g[KEY]=[];}catch(e){}try{window.localStorage.removeItem(LS);}catch(e){}try{save([]);}catch(e){}}
+// ---- /clearprompts: swallow it (capture phase, before React + the slash menu) and wipe history ----
+function editHost(node){while(node&&node.nodeType===1){var ce=node.getAttribute&&node.getAttribute("contenteditable");if(ce!==null&&ce!==undefined&&ce!=="false")return node;node=node.parentNode;}return null;}
+document.addEventListener("keydown",function(ev){try{
+if(ev.key!=="Enter"||ev.shiftKey||ev.altKey||ev.ctrlKey||ev.metaKey||ev.isComposing)return;
+var host=editHost(ev.target);if(!host)return;
+var txt=(host.textContent||"").trim();
+if(txt.toLowerCase()!=="/clearprompts")return;
+ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();
+clearAll();
+try{host.textContent="";var ie;try{ie=new InputEvent("input",{bubbles:true});}catch(_1){ie=new Event("input",{bubbles:true});}host.dispatchEvent(ie);}catch(e){}
+try{console.log("[LOCAL EDIT promptpersist] prompt history cleared via /clearprompts");}catch(e){}
+}catch(e){}},true);
+}catch(e){try{console.error("[LOCAL EDIT promptpersist] init failed",e);}catch(_){}}
+})();
+/* END LOCAL EDIT promptpersist */
+```
 
 ---
 
