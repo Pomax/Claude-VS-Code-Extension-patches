@@ -4,7 +4,11 @@ Anthropic can't fucking bother to actually fix any VS Code extenion bugs people 
 
 So: fuck it, I made Claude fix the shit Anthropic can't be bothered to.
 
-## Improvements:
+## How to apply them:
+
+Tell your LLM to read through `patch-instructions.md` and do what it says.
+
+## What got improved:
 
 ### 1. rip out the stupid "whimsy terms while thinking" bullshit.
 
@@ -25,4 +29,4 @@ So: fuck it, I made Claude fix the shit Anthropic can't be bothered to.
 
 ## Can you add X?
 
-No, but you can because you also have access to Claude. Tell it to apply these fixes, then tell it to also fix whatever _you_ need fixed in a way that it can file an issue and PR for that in this repo.
+You mean "can _we_ add", because we all have access to Claude: file an issue detailing what you want to fix, and then Claude to do that work in the same way that the `patch-instructions.md` already fix a bunch of stuff (so: fix it and then update the instructions with the new fix). Then simply contribute that as a PR that fixes your issue. If Anthropic can't be bothered to fix stuff, at least we can bypass them and fix the shit they refuse to, _together_.
