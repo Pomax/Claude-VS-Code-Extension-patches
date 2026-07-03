@@ -33,12 +33,6 @@ Claude forms perfectly valid markdown, and the extension can't be fucking bother
 |--|--|
 | <img width="705" height="398" alt="Image" src="https://github.com/user-attachments/assets/fcedce5e-12a9-4efc-accd-f64483a97184" /> |<img width="538" height="478" alt="Image" src="https://github.com/user-attachments/assets/ec079814-9161-4b00-81d0-b0a2974bfbea"> |
 
-### 3. I fixed `/clear` so that it preserves your prompt history.
-
-`/clear` should wipe the LLM slate clean, it should _not_ also magically wipe your prompt history. You should be able to have it fuck up, run `/clear`, and then hit "up" a few times to restart on your original prompt. The point of clearing is to clear the LLM, and _**only**_ the LLM, not your user interface.
-
-If you want to clear your prompts, you can now issue `/clearprompts` as a separate command, which no sane person would ever want to use, but it's there because why not.
-
 ## Can you add X?
 
 You mean "can _I_ add X?"
