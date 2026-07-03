@@ -41,4 +41,6 @@ If you want to clear your prompts, you can now issue `/clearprompts` as a separa
 
 ## Can you add X?
 
-You mean "can _we_ add", because we all have access to Claude: file an issue detailing what you want to fix, and then Claude to do that work in the same way that the `patch-instructions.md` already fix a bunch of stuff (so: fix it and then update the instructions with the new fix). Then simply contribute that as a PR that fixes your issue. If Anthropic can't be bothered to fix stuff, at least we can bypass them and fix the shit they refuse to, _together_.
+You mean "can _I_ add X?"
+
+If you're using these patches, you are using the Claude extension so you can use Claude: just file an issue detailing what you want to fix, and then ask Claude to do that work in the same way that the `patch-instructions.md` files already fixes a bunch of stuff. Then simply contribute that as a PR that fixes your issue. If Anthropic can't be bothered to fix stuff, at least we can bypass them and fix the shit they refuse to, _together_.
