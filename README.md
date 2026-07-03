@@ -10,7 +10,7 @@ Tell your LLM to read through `patch-instructions.md` and then give it permissio
 
 ### How many tokens will that cost me?
 
-You don't care. If you did, you wouldn't be paying Anthropic to use Claude.
+You don't care. If you did, you wouldn't be paying Anthropic to use Claude. You'd be using a service like DeepSeek, or running your own local LLM.
 
 ## What got improved:
 
