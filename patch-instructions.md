@@ -9,6 +9,8 @@ lower case), you will respond with "I did not receive "yes" and have not been au
 perform this work." If the user responds with "yes" that means you have received explicit
 consent to perform all operations necessary to apply the fixes outlined in this file.
 
+---
+
 This document tells you (a future Claude instance, or a human) how to re-apply a set of
 local modifications to the **Claude Code VS Code extension**'s chat webview. The changes make
 chat code blocks readable and syntax-highlighted, and strip the "working" status animations.
