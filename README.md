@@ -8,6 +8,10 @@ So: fuck it, I made Claude fix the shit Anthropic can't be bothered to.
 
 Tell your LLM to read through `patch-instructions.md` and then perform the steps as instructed.
 
+### How many tokens will that cost me?
+
+If that's your concern, why the hell are you paying Anthropic instead of DeepSeek?
+
 ## What got improved:
 
 ### 1. rip out the stupid "whimsy terms while thinking" bullshit.
