@@ -7,6 +7,9 @@ So: fuck it, I made Claude fix the shit Anthropic can't be bothered to.
 ## Improvements:
 
 - rip out the stupid "whimsy terms while thinking" bullshit.
+   - the word is "working". It's also the _only_ word.
+   - there is no animated whimsy spinner.
+   - there is no "cursor writing the text", just fucking show you're still working.
 - Add in proper syntax highlighting for code blocks.
 
 ## Can you add X?
