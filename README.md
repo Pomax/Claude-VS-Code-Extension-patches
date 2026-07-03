@@ -6,7 +6,9 @@ So: fuck it, I made Claude fix the shit Anthropic can't be bothered to.
 
 ## How to apply them:
 
-Set Claude to "auto mode" and then tell it to read through `patch-instructions.md` and make those changes.
+Step one: Anthropic's shit at fixing things, so turn off auto-update for the Claude extension. This isn't high frequency trading, there is zero reason for hourly or even minutely updates to an extension that does barely anything, and what it does, it does poorly.
+
+Then: set Claude to "auto mode" and tell it to read through `patch-instructions.md` and do what it says.
 
 ### How many tokens will that cost me?
 
