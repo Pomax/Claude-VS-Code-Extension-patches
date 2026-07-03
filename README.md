@@ -6,7 +6,7 @@ So: fuck it, I made Claude fix the shit Anthropic can't be bothered to.
 
 ## How to apply them:
 
-Tell your LLM to read through `patch-instructions.md` and then give it permission to make those changes.
+Set Claude to "auto mode" and then tell it to read through `patch-instructions.md` and make those changes.
 
 ### How many tokens will that cost me?
 
