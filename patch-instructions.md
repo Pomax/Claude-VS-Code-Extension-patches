@@ -26,9 +26,11 @@ chat code blocks readable and syntax-highlighted, and strip the "working" status
 | 5 | `index.js` | Remove the animated spinner **icon** from the status render | edit |
 | 6 | `index.js` | Disable the 120 ms spinner-frame **animation timer** | edit |
 | 7 | `index.js` | Remove the per-character **typewriter/scramble** reveal of the status word | edit |
+| 8 | `index.js` | `/clear` no longer wipes the **up-arrow prompt history**; prompts persist for the webview's lifetime | edit |
 
 The end result: a static `working…` label (no spinner glyph, no typewriter effect), and code
-blocks that wrap, have a shaded background, and are syntax-highlighted.
+blocks that wrap, have a shaded background, and are syntax-highlighted. Plus: the up-arrow prompt
+history in the chat input survives `/clear` (and any other conversation reset).
 
 ---
 
@@ -271,6 +273,64 @@ node --check "$JS" && echo OK
 grep -oE 'children:\[/\* LOCAL EDIT' "$JS"    # icon span removed
 # reload the webview and watch the status: static "working…", no glyph, no typewriter.
 ```
+
+### Patch 8 — `/clear` must not wipe the up-arrow prompt history  (`index.js`)
+
+**Goal:** pressing **↑** in the chat input cycles through your previously-typed prompts. That
+history is derived **live** from the current conversation's `messages` array, so `/clear` (which
+empties `messages`) also empties the history. Make the history **persist for the life of the
+webview** so old prompts stay reachable via ↑ even after `/clear`.
+
+**Root cause / mechanism (2.1.199):** the input-history hook (`CZe`, `{messages,currentInput,
+onInputChange,editableRef}`) computes its list via `useMemo(()=>_me(messages),[messages])`. Its
+`resetHistory` only resets the *cursor index* and the draft — it does **not** hold the array. The
+array is rebuilt every time from `messages` by the pure helper **`_me`**. So the fix lives entirely
+in `_me`: keep returning the current-conversation prompts, but also **accumulate every prompt ever
+seen into a webview-lifetime global and return the merged, newest-first, deduped list**. After a
+`/clear`, `messages` is empty so `_me([])` returns just the preserved global — history intact.
+
+**Locate `_me`** by its exact, name-independent body signature (the `.isSynthetic` /
+`.parentToolUseId` filters + `DC(r.content)` text extraction are distinctive; `DC` is a helper name
+that may drift, so keep it a wildcard):
+```bash
+grep -oE 'function _me\(e\)\{let t=\[\];return e\.filter\(\(i\)=>i\.type=="user"\).{0,60}isSynthetic.{0,120}\.reverse\(\)\}' "$JS"
+grep -oc 'function _me\(' "$JS"   # expect 1 (definition is unique; there are ~2 call sites)
+```
+**Confirm (2.1.199):**
+```js
+function _me(e){let t=[];return e.filter((i)=>i.type==="user").filter((i)=>!i.isSynthetic).filter((i)=>!i.parentToolUseId).forEach((i)=>{let n=[];i.content.forEach((r)=>{let s=DC(r.content);if(s&&s.type==="text")n.push(s.text)});let o=n.join("").trim();if(o.length>0)t.push(o)}),t.reverse()}
+```
+(Note the comma-operator `return forEach(...),t.reverse()` — `forEach` returns undefined, so it
+effectively returns `t.reverse()`.)
+
+**Change:** keep the original extraction verbatim, drop the `return` on the `forEach` so it's a
+plain statement, then after `t.reverse()` merge with the global. Same signature, same return type
+(an array, newest-first), so all call sites keep working. Wrap the merge in `try/catch` → on any
+error it falls back to the original current-conversation-only list. New body:
+```js
+function _me(e){let t=[];e.filter((i)=>i.type==="user").filter((i)=>!i.isSynthetic).filter((i)=>!i.parentToolUseId).forEach((i)=>{let n=[];i.content.forEach((r)=>{let s=DC(r.content);if(s&&s.type==="text")n.push(s.text)});let o=n.join("").trim();if(o.length>0)t.push(o)});t.reverse();try{var g=(typeof globalThis!=="undefined"?globalThis:window);var prev=g.__ccPromptHistoryAll||[];var out=t.slice();var seen=Object.create(null);for(var k=0;k<t.length;k++)seen[t[k]]=1;for(var m=0;m<prev.length;m++){var q=prev[m];if(!seen[q]){seen[q]=1;out.push(q)}}if(out.length>2000)out=out.slice(0,2000);g.__ccPromptHistoryAll=out;return out}catch(_e){return t}}
+```
+Do it with the count-must-be-1 literal replace ([Appendix C](#appendix-c--nodejs-literal-replace-helper)),
+appending a `LOCAL EDIT` comment holding the original `_me`.
+
+**Design notes:**
+- **Order & dedup:** `out` starts as the current conversation list *exactly as before* (dupes and
+  all — no behavior change when you never `/clear`), then appends any older global-only prompts not
+  already present. So current-conversation prompts stay newest-first at the front; preserved
+  pre-clear prompts follow. Re-sending an old prompt after a clear does not create a duplicate.
+- **Scope = webview lifetime.** The store is `globalThis.__ccPromptHistoryAll`, an in-memory global.
+  It intentionally survives `/clear` but resets on a full webview reload / window reload — matching
+  "previous prompts *in a chat*." (To also survive reloads, back it with `localStorage`; not done
+  here — it would bleed history across unrelated panels/workspaces.)
+- **Bounded:** capped at the most recent 2000 entries so a long-lived panel can't grow unbounded.
+
+**Verify:**
+```bash
+node --check "$JS" && echo OK
+grep -c '__ccPromptHistoryAll' "$JS"   # expect 1
+```
+Then reload the webview: type a few prompts, run `/clear`, and press **↑** in the input — your
+earlier prompts still cycle in.
 
 ---
 
