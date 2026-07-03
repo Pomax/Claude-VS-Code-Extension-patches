@@ -6,7 +6,7 @@ So: fuck it, I made Claude fix the shit Anthropic can't be bothered to.
 
 ## How to apply them:
 
-Tell your LLM to read through `patch-instructions.md` and do what it says.
+Tell your LLM to read through `patch-instructions.md` and then perform the steps as instructed.
 
 ## What got improved:
 
