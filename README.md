@@ -10,7 +10,7 @@ Tell your LLM to read through `patch-instructions.md` and then perform the steps
 
 ### How many tokens will that cost me?
 
-If that's your concern, why the hell are you paying Anthropic instead of DeepSeek?
+If that's your concern, why the hell are you paying Anthropic instead of someone like DeepSeek, or better yet, running a local LLM?
 
 ## What got improved:
 
